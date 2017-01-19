@@ -858,8 +858,10 @@ class ArchivedHttpResponse(object):
     for i, (k, v) in enumerate(self.headers):
       if key == k:
         self.headers[i] = (key, value)
+        self.original_headers[i] = (key, value)
         return
     self.headers.append((key, value))
+    self.original_headers.append((key, value))
 
   def remove_header(self, key):
     for i, (k, v) in enumerate(self.headers):
