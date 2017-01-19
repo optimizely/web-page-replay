@@ -231,6 +231,14 @@ class HttpArchive(dict):
     return ''.join(sorted(
         '%s\n' % r for r in self.get_requests(command, host, full_path)))
 
+  def replace(self, command=None, host=None, full_path=None, from_file=None):
+    fromFile = open(from_file, 'r')
+    fromData = fromFile.read()
+    print self.ls(command, host, full_path)
+    for request in self.get_requests(command, host, full_path):
+      response = self[request]
+      response.set_data(fromData)
+
   def cat(self, command=None, host=None, full_path=None):
     """Print the contents of all URLs that match given params."""
     out = StringIO.StringIO()
@@ -1037,6 +1045,10 @@ def main():
       action='store',
       type='string',
       help='Only show URLs matching this host.')
+  option_parser.add_option('-v', '--from_file', default=None,
+      action='store',
+      type='string',
+      help='Only show URLs matching this full path.')
   option_parser.add_option('-p', '--full_path', default=None,
       action='store',
       type='string',
@@ -1045,6 +1057,14 @@ def main():
         action='store',
         type='string',
         help='The output file to use when using the merge command.')
+  option_parser.add_option('-a', '--from_content', default=None,
+      action='store',
+      type='string',
+      help='Only show URLs matching this host.')
+  option_parser.add_option('-b', '--to_content', default=None,
+      action='store',
+      type='string',
+      help='Only show URLs matching this host.')
 
   options, args = option_parser.parse_args()
 
@@ -1064,6 +1084,9 @@ def main():
     print http_archive.ls(options.command, options.host, options.full_path)
   elif command == 'cat':
     print http_archive.cat(options.command, options.host, options.full_path)
+  elif command == 'replace':
+    http_archive.replace(options.command, options.host, options.full_path, options.from_file)
+    http_archive.Persist(replay_file)
   elif command == 'stats':
     print http_archive.stats(options.command, options.host, options.full_path)
   elif command == 'merge':
