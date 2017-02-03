@@ -43,6 +43,7 @@ import argparse
 import json
 import logging
 import os
+import signal
 import socket
 import sys
 import traceback
@@ -358,6 +359,7 @@ def replay(options, replay_filename):
 
   exit_status = 0
   try:
+    signal.signal(signal.SIGTERM, lambda: os.kill(os.getpid(), signal.SIGINT))
     server_manager.Run()
   except KeyboardInterrupt:
     logging.info('Shutting down.')
