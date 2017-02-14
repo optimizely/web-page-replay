@@ -307,6 +307,7 @@ class RealHttpFetch(object):
         return None
       connection_host = connection_ip
 
+
     if is_ssl:
       connection = DetailedHTTPSConnection(connection_host, connection_port)
       if system_proxy:
