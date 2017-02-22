@@ -363,7 +363,7 @@ def replay(options, replay_filename):
 
   exit_status = 0
   try:
-    signal.signal(signal.SIGTERM, lambda: os.kill(os.getpid(), signal.SIGINT))
+    signal.signal(signal.SIGTERM, lambda x, y: os.kill(os.getpid(), signal.SIGINT))
     server_manager.Run()
   except KeyboardInterrupt:
     logging.info('Shutting down.')

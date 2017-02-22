@@ -29,6 +29,7 @@ import platform
 import socket
 import subprocess
 import time
+import ssl as stdlibssl
 
 openssl_import_error = None
 
@@ -153,20 +154,36 @@ def get_host_cert(host, port=443):
     # Return True to indicates that the certificate was ok.
     return True
 
-  context = SSL.Context(SSL.SSLv23_METHOD)
-  context.set_verify(SSL.VERIFY_PEER, verify_cb)  # Demand a certificate
-  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  connection = SSL.Connection(context, s)
   try:
+    connection = None
+    context = stdlibssl.SSLContext(stdlibssl.PROTOCOL_TLS)
+    context.load_default_certs()
+    context.verify_mode = stdlibssl.CERT_REQUIRED
+    context.check_hostname = True
+    sk = socket.socket(socket.AF_INET)
+    sk.settimeout(5.0)
+    connection = context.wrap_socket(sk, server_hostname=host)
     connection.connect((host, port))
-    connection.send('')
-  except SSL.SysCallError:
+    cert = connection.getpeercert() or None
+    if cert:
+      cert_der = connection.getpeercert(True)
+      cert_x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert_der)
+      verify_cb(connection, cert_x509, None, None, None)
+    connection.sendall('')
+  except socket.timeout:
+    logging.debug('socket.timeout for %s:%s', host, port)
+    pass
+  except SSL.SysCallError, e:
+    logging.error('SSLSysCallError: %r', e)
     pass
   except socket.gaierror:
     logging.debug('Host name is not valid')
   finally:
-    connection.shutdown()
-    connection.close()
+    if connection is not None:
+      connection.shutdown(socket.SHUT_WR)
+      connection.close()
+    else:
+      logging.info("connection was None %s:%s", host, port)
   if not host_certs:
     logging.warning('Unable to get host certificate from %s:%s', host, port)
     return ''
@@ -239,10 +256,14 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   if server_cert_str:
     original_cert = load_cert(server_cert_str)
     common_name = original_cert.get_subject().commonName
+    if common_name is None:
+      common_name = server_host
     for i in xrange(original_cert.get_extension_count()):
       original_cert_extension = original_cert.get_extension(i)
       if original_cert_extension.get_short_name() in EXTENSION_WHITELIST:
         reused_extensions.append(original_cert_extension)
+  else:
+    logging.warn("MISSING server_cert_str for (%s)", common_name)
 
   ca_cert = load_cert(root_ca_cert_str)
   ca_key = load_privatekey(root_ca_cert_str)
