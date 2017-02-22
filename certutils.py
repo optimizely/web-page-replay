@@ -29,7 +29,7 @@ import platform
 import socket
 import subprocess
 import time
-import ssl as realssl
+import ssl as stdlibssl
 
 openssl_import_error = None
 
@@ -156,9 +156,9 @@ def get_host_cert(host, port=443):
 
   try:
     connection = None
-    context = realssl.SSLContext(realssl.PROTOCOL_TLS)
+    context = stdlibssl.SSLContext(stdlibssl.PROTOCOL_TLS)
     context.load_default_certs()
-    context.verify_mode = realssl.CERT_REQUIRED
+    context.verify_mode = stdlibssl.CERT_REQUIRED
     context.check_hostname = True
     sk = socket.socket(socket.AF_INET)
     sk.settimeout(5.0)

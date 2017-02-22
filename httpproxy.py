@@ -26,7 +26,6 @@ import sys
 import time
 import urlparse
 import threading
-from collections import defaultdict
 
 import daemonserver
 import httparchive
