@@ -265,7 +265,6 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   else:
     logging.warn("MISSING server_cert_str for (%s)", common_name)
 
-
   ca_cert = load_cert(root_ca_cert_str)
   ca_key = load_privatekey(root_ca_cert_str)
 

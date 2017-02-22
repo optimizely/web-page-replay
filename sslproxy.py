@@ -49,7 +49,6 @@ def _SetUpUsingDummyCert(handler):
     except Exception, e:
       # Do not leak any exceptions or else openssl crashes.
       logging.error('Exception in SNI handler: %s', e)
-      logging.error('Exception in SNI handler: %s', e)
 
   context.set_tlsext_servername_callback(handle_servername)
   handler.connection = certutils.get_ssl_connection(context, handler.connection)
@@ -59,7 +58,7 @@ def _SetUpUsingDummyCert(handler):
   except certutils.Error, v:
     host = handler.connection.get_servername()
     if not host:
-      logging.error('Dropping request without SNI")')
+      logging.error('Dropping request without SNI')
       return ''
     raise certutils.Error('SSL handshake error %s: %s' % (host, str(v)))
 
