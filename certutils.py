@@ -168,7 +168,7 @@ def get_host_cert(host, port=443):
     if cert:
       cert_der = connection.getpeercert(True)
       cert_x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert_der)
-      verify_cb(connection, cert_x509, None, None, None) and logging.debug('verify_cb and')
+      verify_cb(connection, cert_x509, None, None, None)
     connection.sendall('')
   except socket.timeout:
     logging.debug('socket.timeout for %s:%s', host, port)
