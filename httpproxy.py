@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # Copyright 2010 Google Inc. All Rights Reserved.
-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +24,6 @@ import ssl
 import sys
 import time
 import urlparse
-import threading
 
 import daemonserver
 import httparchive
@@ -39,9 +37,7 @@ def _HandleSSLCertificateError():
   BaseHTTPServer.HTTPServer.handle_error().
   """
   exc_type, exc_value, exc_traceback = sys.exc_info()
-  logging.error('_HandleSSLCertificateError(): %r %r', exc_type, exc_value)
   if isinstance(exc_value, ssl.SSLError):
-    logging.error('_HandleSSLCertificateError(): ssl.SSLError, swallowing')
     return
 
   raise
@@ -420,7 +416,6 @@ class HttpsProxyServer(HttpProxyServer):
     return cert
 
   def handle_error(self, request, client_address):
-    logging.error("request is %s" % request)
     _HandleSSLCertificateError()
 
 

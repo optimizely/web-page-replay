@@ -77,7 +77,7 @@ def configure_logging(log_level_name, log_file_name=None):
                      ' was called before logging was configured.')
   log_level = getattr(logging, log_level_name.upper())
   log_format = (
-    '(%(levelname)s) [%(threadName)s] %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+    '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
     '%(message)s')
 
 
@@ -364,7 +364,6 @@ def replay(options, replay_filename):
   exit_status = 0
   try:
     signal.signal(signal.SIGTERM, lambda x, y: os.kill(os.getpid(), signal.SIGINT))
-    signal.signal(signal.SIGUSR1, lambda: logging.warn(sys._current_frames()))
     server_manager.Run()
   except KeyboardInterrupt:
     logging.info('Shutting down.')

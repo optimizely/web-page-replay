@@ -16,7 +16,6 @@
 
 import logging
 import socket
-import traceback
 
 import certutils
 
@@ -40,7 +39,6 @@ def _SetUpUsingDummyCert(handler):
       if host:
         cert_str = (
             handler.server.get_certificate(host))
-
         new_context = certutils.get_ssl_context()
         cert = certutils.load_cert(cert_str)
         new_context.use_certificate(cert)
@@ -50,7 +48,7 @@ def _SetUpUsingDummyCert(handler):
       # else: fail with 'no shared cipher'
     except Exception, e:
       # Do not leak any exceptions or else openssl crashes.
-      logging.error('Exception in SNI handler: %s', traceback.format_exc())
+      logging.error('Exception in SNI handler: %s', e)
       logging.error('Exception in SNI handler: %s', e)
 
   context.set_tlsext_servername_callback(handle_servername)
@@ -61,10 +59,9 @@ def _SetUpUsingDummyCert(handler):
   except certutils.Error, v:
     host = handler.connection.get_servername()
     if not host:
-      logging.error('handshake raised exc and host empty (formerly known as "Dropping request without SNI")')
+      logging.error('Dropping request without SNI")')
       return ''
-    logging.error('handshake raised: SSL handshake error %s: %s' % (host, str(v)))
-    raise certutils.Error('handshake raised: SSL handshake error %s: %s' % (host, str(v)))
+    raise certutils.Error('SSL handshake error %s: %s' % (host, str(v)))
 
   # Re-wrap the read/write streams with our new connection.
   handler.rfile = socket._fileobject(handler.connection, 'rb', handler.rbufsize,
