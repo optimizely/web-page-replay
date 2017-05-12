@@ -237,7 +237,10 @@ class HttpArchive(dict):
     print self.ls(command, host, full_path)
     for request in self.get_requests(command, host, full_path):
       response = self[request]
-      response.set_data(fromData)
+      if DELAY_EDIT_SEPARATOR in fromData:
+        response.set_response_from_text(fromData)
+      else:
+        response.set_data(fromData)
 
   def cat(self, command=None, host=None, full_path=None):
     """Print the contents of all URLs that match given params."""
