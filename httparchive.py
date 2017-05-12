@@ -237,7 +237,7 @@ class HttpArchive(dict):
     print self.ls(command, host, full_path)
     for request in self.get_requests(command, host, full_path):
       response = self[request]
-      if DELAY_EDIT_SEPARATOR in fromData:
+      if ArchivedHttpResponse.DELAY_EDIT_SEPARATOR in fromData:
         response.set_response_from_text(fromData)
       else:
         response.set_data(fromData)
