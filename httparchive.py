@@ -793,7 +793,7 @@ class ArchivedHttpResponse(object):
           }
     else:
       num_delays = len(self.delays['data'])
-      if num_delays != expected_num_delays:
+      if num_delays < expected_num_delays:
         raise HttpArchiveException(
             'Server delay length mismatch: %d (expected %d): %s',
             num_delays, expected_num_delays, self.delays['data'])
