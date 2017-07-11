@@ -927,6 +927,7 @@ class ArchivedHttpResponse(object):
     if (not content_type or
         not (content_type.startswith('text/') or
              content_type == 'application/x-javascript' or
+             content_type == 'application/javascript' or
              content_type.startswith('application/json'))):
       return None
     if self.is_compressed():
