@@ -140,7 +140,7 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         time.sleep(self.server.traffic_shaping_delay_ms / 1000.0)
       if is_replay and self.server.use_delays:
         logging.debug('Using delays (ms): %s', response.delays)
-        time.sleep(response.delays['headers'] / 1000.0)
+        time.sleep((response.delays['headers'] + response.delays['connect']) / 1000.0)
         delays = response.delays['data']
       else:
         delays = [0] * len(response.response_data)
@@ -156,6 +156,7 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       for chunk, delay in zip(response.response_data, delays):
         if delay:
           self.wfile.flush()
+          logging.debug('Using delays (ms): %s', delay)
           time.sleep(delay / 1000.0)
         if is_chunked:
           # Write chunk length (hex) and data (e.g. "A\r\nTESSELATED\r\n").
