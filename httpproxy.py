@@ -139,8 +139,12 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                       self.server.traffic_shaping_delay_ms)
         time.sleep(self.server.traffic_shaping_delay_ms / 1000.0)
       if is_replay and self.server.use_delays:
-        logging.debug('Using delays (ms): %s', response.delays)
-        time.sleep(response.delays['headers'] / 1000.0)
+        if self.server.use_connect_delays:
+          logging.debug('Using delays (ms): headers: %s connect: %s', response.delays['headers'], response.delays['connect'])
+          time.sleep((response.delays['headers'] + response.delays['connect']) / 1000.0)
+        else:
+          logging.debug('Using delays (ms): %s', response.delays['headers'])
+          time.sleep(response.delays['headers'] / 1000.0)
         delays = response.delays['data']
       else:
         delays = [0] * len(response.response_data)
@@ -156,6 +160,7 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       for chunk, delay in zip(response.response_data, delays):
         if delay:
           self.wfile.flush()
+          logging.debug('Using delay from data: %s', delay)
           time.sleep(delay / 1000.0)
         if is_chunked:
           # Write chunk length (hex) and data (e.g. "A\r\nTESSELATED\r\n").
@@ -299,7 +304,7 @@ class HttpProxyServer(SocketServer.ThreadingMixIn,
 
   def __init__(self, http_archive_fetch, custom_handlers, rules,
                host='localhost', port=80, use_delays=False, is_ssl=False,
-               protocol='HTTP', allow_generate_304=False,
+               protocol='HTTP', allow_generate_304=False, use_connect_delays=False,
                down_bandwidth='0', up_bandwidth='0', delay_ms='0'):
     """Start HTTP server.
 
@@ -308,6 +313,7 @@ class HttpProxyServer(SocketServer.ThreadingMixIn,
       host: a host string (name or IP) for the web proxy.
       port: a port string (e.g. '80') for the web proxy.
       use_delays: if True, add response data delays during replay.
+      use_connect_delays: if True, add connect time to response delays.
       is_ssl: True iff proxy is using SSL.
       up_bandwidth: Upload bandwidth
       down_bandwidth: Download bandwidth
@@ -337,6 +343,7 @@ class HttpProxyServer(SocketServer.ThreadingMixIn,
     self.http_archive_fetch = http_archive_fetch
     self.custom_handlers = custom_handlers
     self.use_delays = use_delays
+    self.use_connect_delays = use_connect_delays
     self.is_ssl = is_ssl
     self.traffic_shaping_down_bps = proxyshaper.GetBitsPerSecond(down_bandwidth)
     self.traffic_shaping_up_bps = proxyshaper.GetBitsPerSecond(up_bandwidth)
