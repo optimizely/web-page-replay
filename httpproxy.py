@@ -139,12 +139,12 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                       self.server.traffic_shaping_delay_ms)
         time.sleep(self.server.traffic_shaping_delay_ms / 1000.0)
       if is_replay and self.server.use_delays:
+          logging.debug('Using delays from headers: %sms', response.delays['headers'])
+          latency = response.delays['headers']
         if self.server.use_connect_delays:
-          logging.debug('Using delays (ms): headers: %s connect: %s', response.delays['headers'], response.delays['connect'])
-          time.sleep((response.delays['headers'] + response.delays['connect']) / 1000.0)
-        else:
-          logging.debug('Using delays (ms): %s', response.delays['headers'])
-          time.sleep(response.delays['headers'] / 1000.0)
+          logging.debug('Using delays from connect: %sms', response.delays['connect'])
+          latency += response.delays['connect']
+          time.sleep( latency / 1000.0 )
         delays = response.delays['data']
       else:
         delays = [0] * len(response.response_data)
@@ -160,7 +160,7 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       for chunk, delay in zip(response.response_data, delays):
         if delay:
           self.wfile.flush()
-          logging.debug('Using delay from data: %s', delay)
+          logging.debug('Using delays from data: %sms', delay)
           time.sleep(delay / 1000.0)
         if is_chunked:
           # Write chunk length (hex) and data (e.g. "A\r\nTESSELATED\r\n").
