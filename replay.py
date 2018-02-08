@@ -140,6 +140,7 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
       httpproxy.HttpProxyServer,
       archive_fetch, custom_handlers, rules,
       host=host, port=options.port, use_delays=options.use_server_delay,
+      use_connect_delays=options.use_connect_delays,
       allow_generate_304=allow_generate_304,
       **options.shaping_http)
   if options.ssl:
@@ -148,12 +149,14 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
           httpproxy.HttpsProxyServer, archive_fetch, custom_handlers, rules,
           options.https_root_ca_cert_path, host=host, port=options.ssl_port,
           allow_generate_304=allow_generate_304,
+          use_connect_delays=options.use_connect_delays,
           use_delays=options.use_server_delay, **options.shaping_http)
     else:
       server_manager.Append(
           httpproxy.SingleCertHttpsProxyServer, archive_fetch,
           custom_handlers, rules, options.https_root_ca_cert_path, host=host,
           port=options.ssl_port, use_delays=options.use_server_delay,
+          use_connect_delays=options.use_connect_delays,
           allow_generate_304=allow_generate_304,
           **options.shaping_http)
   if options.http_to_https_port:
@@ -162,6 +165,7 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
         archive_fetch, custom_handlers, rules,
         host=host, port=options.http_to_https_port,
         use_delays=options.use_server_delay,
+        use_connect_delays=options.use_connect_delays,
         allow_generate_304=allow_generate_304,
         **options.shaping_http)
 
@@ -187,9 +191,9 @@ class OptionsWrapper(object):
       'down', 'up', 'delay_ms', 'packet_loss_rate', 'init_cwnd', 'net'}
   _CONFLICTING_OPTIONS = (
       ('record', ('down', 'up', 'delay_ms', 'packet_loss_rate', 'net',
-                  'spdy', 'use_server_delay')),
+                  'spdy', 'use_server_delay', 'use_connect_delays')),
       ('append', ('down', 'up', 'delay_ms', 'packet_loss_rate', 'net',
-                  'use_server_delay')),  # same as --record
+                  'use_server_delay', 'use_connect_delays')),  # same as --record
       ('net', ('down', 'up', 'delay_ms')),
       ('server', ('server_mode',)),
   )
@@ -482,6 +486,12 @@ def GetParser():
       dest='use_server_delay',
       help='During replay, simulate server delay by delaying response time to'
            'requests.')
+  harness_group.add_argument('--use_connect_delays', default=False,
+      action='store_true',
+      dest='use_connect_delays',
+      help='During replay, simulate server delay by including connect time in'
+           'delaying response time to requests. Use in addition to'
+           ' --use_server_delay')
   harness_group.add_argument('-I', '--screenshot_dir', default=None,
       action='store',
       type=str,
