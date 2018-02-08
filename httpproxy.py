@@ -141,9 +141,9 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       if is_replay and self.server.use_delays:
           logging.debug('Using delays from headers: %sms', response.delays['headers'])
           latency = response.delays['headers']
-        if self.server.use_connect_delays:
-          logging.debug('Using delays from connect: %sms', response.delays['connect'])
-          latency += response.delays['connect']
+          if self.server.use_connect_delays:
+            logging.debug('Using delays from connect: %sms', response.delays['connect'])
+            latency += response.delays['connect']
           time.sleep( latency / 1000.0 )
         delays = response.delays['data']
       else:
